@@ -11,10 +11,27 @@ Possible Cases:
 3. Role Doesn't Match: { message: 'Access Denied', status: "Error" }
 */
 
-function grantAccessTo(roles) {
-  return function (req, res, next) {
-    //Write your code here;
-    try{
+function grantAccessTo(roles) { return function (req, res, next) {
+  const token = req.headers.authorization;
+
+  if (!token) {
+    return res
+      .status(401)
+      .json({ message: 'Authentication failed: Missing token.', status: 'Error' });
+  }
+
+  try {
+    const decodedToken = jwt.verify(token, JWT_SECRET);
+    const userRoles = decodedToken.roles;
+
+    const hasAccess = roles.some((role) => userRoles.includes(role));
+    if (!hasAccess) {
+      return res.status(403).json({ message: 'Access Denied', status: 'Error' });
+    }
+
+    // Grant access to the route if the user has the required role
+    next();
+    
     } catch (err) {
       return res.status(401).json({ message: 'Authentication failed: Invalid token.', status: "Error" });
     }
