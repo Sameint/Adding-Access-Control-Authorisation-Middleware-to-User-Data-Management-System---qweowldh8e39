@@ -12,25 +12,26 @@ Possible Cases:
 */
 
 function grantAccessTo(roles) { return function (req, res, next) {
-  const token = req.headers.authorization;
-
-  if (!token) {
-    return res
-      .status(401)
-      .json({ message: 'Authentication failed: Missing token.', status: 'Error' });
-  }
-
-  try {
-    const decodedToken = jwt.verify(token, JWT_SECRET);
-    const userRoles = decodedToken.roles;
-
-    const hasAccess = roles.some((role) => userRoles.includes(role));
-    if (!hasAccess) {
-      return res.status(403).json({ message: 'Access Denied', status: 'Error' });
+  return function (req, res, next) {
+    //Write your code here;
+    const token = req.headers.authorization;
+    if (!token) {
+      return res
+        .status(401)
+        .json({
+          message: "Authentication failed: Missing token.",
+          status: "Error",
+        });
     }
 
-    // Grant access to the route if the user has the required role
-    next();
+    try {
+      const decodedToken = jwt.verify(token, JWT_SECRET);
+      if (!roles.includes(decodedToken.role)) {
+        return res
+          .status(403)
+          .json({ message: "Access Denied", status: "Error" });
+      }
+      next();
     
     } catch (err) {
       return res.status(401).json({ message: 'Authentication failed: Invalid token.', status: "Error" });
